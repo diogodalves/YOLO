@@ -3,9 +3,12 @@ import numpy as np
 import os
 import imutils
 from yolo import *
+import time
 
 def capture_video(video_path, vid_name):
-    vs = cv2.VideoCapture(video_path)
+    # vs = cv2.VideoCapture(video_path)
+    vs = cv2.VideoCapture(0)
+    
     writer = None
 
     try:
@@ -25,7 +28,6 @@ def capture_video(video_path, vid_name):
 
         if not grabbed:
             break
-
         height, width = frame.shape[:2]
 
         go_yolo = goYOLO(frame, vid_name, output_folder, height, width)
@@ -51,5 +53,8 @@ if __name__ == '__main__':
     video_path = video_folder + vid_name
 
     print('Starting Detection...')
+    start = time.time()
     capture_video(video_path, vid_name)
+    end = time.time()
     print('Done!')
+    print('Operation took {} seconds'.format(end-start))

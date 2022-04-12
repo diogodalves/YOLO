@@ -61,7 +61,7 @@ class goYOLO:
                 label = str(self.classes[self.class_ids[i]])
                 confi = str(round(self.confidences[i], 2))
                 color = [int(c) for c in colors[self.class_ids[i]]]
-                cv2.rectangle(self.img, (x, y), (x + w, y + h), color, 3)
+                cv2.rectangle(self.img, (x, y), (x + w, y + h), color, 2)
                 cv2.putText(self.img, label+''+confi, (x, y - 10), font, 2, color, 2)
 
         img_types = ['jpg', 'jpeg', 'png']

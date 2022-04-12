@@ -11,6 +11,7 @@ yolo-coco/
 images/
 output/
 utils/
+tiny-yolo/
 
 # Distribution / packaging
 .Python
