@@ -55,7 +55,16 @@ class goYOLOv5:
             confidence = str(round(self.confidences[i], 3))
 
             cv2.rectangle(self.new_frame, (x_min, y_max), (x_max, y_min), color, contour_size)
-            cv2.putText(self.new_frame, '{} {}'.format(label, confidence), (x_min, y_min - 10), font, contour_size, color, contour_size)
+
+            cv2.rectangle(self.new_frame, (x_min, y_min), 
+                    (x_min+250, y_min-50), 
+                    color, -1)
+                    
+            cv2.putText(self.new_frame, '{} {}'.format(label, confidence), (x_min, y_min - 10), 
+                    font, 
+                    contour_size, 
+                    (255,255,255), 
+                    contour_size)
 
         return self
 
@@ -109,13 +118,13 @@ if __name__ == '__main__':
     print('Detecting...')
 
     # Images
-    # i_choose_yo_lo = goYOLOv5(output_folder, file_name, file_path)
-    # image_frame = i_choose_yo_lo.get_file()
-    # i_choose_yo_lo.yolov5(image_frame)
-    # i_choose_yo_lo.contour_detections()
-    # i_choose_yo_lo.write_image_on_directory()
+    i_choose_yo_lo = goYOLOv5(output_folder, file_name, file_path)
+    image_frame = i_choose_yo_lo.get_file()
+    i_choose_yo_lo.yolov5(image_frame)
+    i_choose_yo_lo.contour_detections()
+    i_choose_yo_lo.write_image_on_directory()
 
     # Videos
-    i_choose_yo_lo = goYOLOv5(output_folder, file_name, file_path)
-    i_choose_yo_lo.get_file()
-    i_choose_yo_lo.capture_video()
+    # i_choose_yo_lo = goYOLOv5(output_folder, file_name, file_path)
+    # i_choose_yo_lo.get_file()
+    # i_choose_yo_lo.capture_video()
