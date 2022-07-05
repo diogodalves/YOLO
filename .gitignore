@@ -12,6 +12,17 @@ images/
 output/
 utils/
 tiny-yolo/
+yolov5/
+convertor/
+to_annotate/
+
+# weights
+best.pt
+yolov5m.pt
+
+# csv
+olive_annotations.csv
+olives_to_coco.csv
 
 # Distribution / packaging
 .Python
