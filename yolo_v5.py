@@ -4,8 +4,12 @@ from PIL import Image
 import os
 import numpy as np
 import imutils
-import logging
+from threading import Thread
 import torchvision.models as models
+from queue import Queue
+import time
+from imutils.video import FileVideoStream
+from imutils.video import FPS
 
 class goYOLOv5:
     def __init__(self, file_directory, file_name, file_path, path_to_weights):
@@ -23,14 +27,16 @@ class goYOLOv5:
             self.file = cv2.VideoCapture(file_path)
             return self
 
-    def yolov5(self, img_frame):
+    def load_model(self):
         # model = torch.hub.load('ultralytics/yolov5', 'yolov5m', verbose=False)
-        model = torch.hub.load('ultralytics/yolov5', 'custom', path=self.path_to_weights, verbose=False)
-        model.conf = 0.5
-        model.iou = 0.3  # NMS IoU threshold (0-1) 
+        self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=self.path_to_weights, verbose=False)
+        self.model.conf = 0.5
+        self.iou = 0.3  # NMS IoU threshold (0-1) 
+
+    def yolov5_results(self, img_frame):
 
         # Inference
-        results = model([img_frame], size=640)
+        results = self.model([img_frame], size=640)
 
         self.points = results.pandas().xyxy[0].iloc[:, 0:4].values
         self.classes = results.pandas().xyxy[0]['name'].values
@@ -102,6 +108,7 @@ class goYOLOv5:
         # While capturing video
         while True:
             (grabbed, frame) = self.file.read()
+            # (grabbed, frame) = self.file.read()
 
             if not grabbed:
                 break
@@ -109,7 +116,7 @@ class goYOLOv5:
 
             frame = Image.fromarray(frame)
 
-            self.yolov5(frame)
+            self.yolov5_results(frame)
             self.contour_detections()
                     
             # Write on video frame
@@ -123,27 +130,71 @@ class goYOLOv5:
         writer.release()
         self.file.release()
 
+    def run_on_stream(self):
+        self.load_model()
+        writer=None
+
+        fvs = FileVideoStream(0).start()
+        time.sleep(1.5)
+        fps = FPS().start()
+
+        while fvs.more():
+            frame = fvs.read()
+            frame = imutils.resize(frame, width=600)
+            
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            frame = Image.fromarray(frame)
+
+            self.yolov5_results(frame)
+            self.contour_detections()
+
+            # Write on video frame
+            if writer is None:
+                fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+                writer = cv2.VideoWriter(output_folder+ self.file_name.split('.')[0] +'_detection.avi', fourcc, 30,
+                    (self.new_frame.shape[1], self.new_frame.shape[0]), True)
+
+            writer.write(self.new_frame)
+	
+            # show the frame and update the FPS counter
+            cv2.imshow("Frame", self.new_frame)
+            cv2.waitKey(1)
+            fps.update()
+
+        writer.release()
+        self.file.release()
+        fps.stop()
+        cv2.destroyAllWindows()
+        fvs.stop()
+
     def run_yolo_on_images(self):
         self.image_frame = self.get_file()
-        self.yolov5(self.image_frame)
+        self.load_model()
+        self.yolov5_results(self.image_frame)
         self.contour_detections()
         self.write_image_on_directory()
 
     def run_yolo_on_videos(self):
+        self.load_model()
         self.get_file()
         self.capture_video()
 
 if __name__ == '__main__':
-    file_folder = 'utils/'
+    file_folder = 'images/'
     output_folder = 'output/'
-    file_name = os.listdir(file_folder)[0]
+    # file_name = os.listdir(file_folder)[0]
+    file_name = 'cars_video.mp4'
     file_path = file_folder + file_name
-    path_to_weights = 'yolov5m.pt'
+    path_to_weights = 'weights/yolov5n.pt'
 
     print('Detecting...')
 
     # Images
-    goYOLOv5(output_folder, file_name, file_path, path_to_weights).run_yolo_on_images()
+    # goYOLOv5(output_folder, file_name, file_path, path_to_weights).run_yolo_on_images()
 
     # Videos
-    # goYOLOv5(output_folder, file_name, file_path).run_yolo_on_videos()
+    # goYOLOv5(output_folder, file_name, file_path, path_to_weights).run_yolo_on_videos()
+
+    # Streaming
+    goYOLOv5(output_folder, file_name, file_path, path_to_weights).run_on_stream()

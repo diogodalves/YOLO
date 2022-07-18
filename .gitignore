@@ -15,6 +15,7 @@ tiny-yolo/
 yolov5/
 convertor/
 to_annotate/
+weights/
 
 # weights
 best.pt
