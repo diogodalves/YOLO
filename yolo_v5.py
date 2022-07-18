@@ -71,22 +71,8 @@ class goYOLOv5:
             # For multiple classes
             color = [int(c) for c in colors[self.class_ids[i]]]
 
-<<<<<<< HEAD
-            cv2.rectangle(self.new_frame, (x_min, y_max), (x_max, y_min), color, contour_size)
-
-            cv2.rectangle(self.new_frame, (x_min, y_min), 
-                    (x_min+250, y_min-50), 
-                    color, -1)
-                    
-            cv2.putText(self.new_frame, '{} {}'.format(label, confidence), (x_min, y_min - 10), 
-                    font, 
-                    contour_size, 
-                    (255,255,255), 
-                    contour_size)
-=======
             # For a single class
             # color = [3, 3, 186]
->>>>>>> 4e98f762093962026522d4195759e22c32b9a0d7
 
             # confidence = str(round(self.confidences[i], 3))
 
@@ -148,13 +134,13 @@ class goYOLOv5:
         self.load_model()
         writer=None
 
-        fvs = FileVideoStream(0).start()
+        fvs = FileVideoStream(0, transform=None, queue_size=8).start()
         time.sleep(1.5)
         fps = FPS().start()
 
         while fvs.more():
             frame = fvs.read()
-            frame = imutils.resize(frame, width=600)
+            frame = imutils.resize(frame, width=700)
             
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -197,7 +183,6 @@ class goYOLOv5:
 if __name__ == '__main__':
     file_folder = 'images/'
     output_folder = 'output/'
-    # file_name = os.listdir(file_folder)[0]
     file_name = 'cars_video.mp4'
     file_path = file_folder + file_name
     path_to_weights = 'weights/yolov5n.pt'
