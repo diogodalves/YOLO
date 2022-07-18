@@ -1,0 +1,8 @@
+git clone https://github.com/ultralytics/yolov5
+
+python train.py --img 416 --batch 12 --epochs 100 --data ./data/coco.yml --weights ../yolov5m.pt
+
+# Random weights (Train from scratch)
+python train.py --img 416 --batch 12 --epochs 60 --data ./data/coco.yml --weights '' --cfg yolov5m.yaml
+
+python detect.py --img 416 --source ../utils/amostra-168_original.jpg --weights ./weights/best.pt --conf-thres 0.4
