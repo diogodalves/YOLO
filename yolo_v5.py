@@ -12,10 +12,12 @@ from imutils.video import FileVideoStream
 from imutils.video import FPS
 
 class goYOLOv5:
-    def __init__(self, file_path, output_directory, path_to_weights):
-        self.output_directory = output_directory
+    def __init__(self, file_path, output_directory, path_to_weights='weights/yolov5n.pt', conf=0.5, iou=0.3):
         self.file_path = file_path
+        self.output_directory = output_directory
         self.path_to_weights = path_to_weights
+        self.conf = conf
+        self.iou = iou
 
     def get_file(self):
         if self.file_path.split('/')[1].split('.')[1] in ['jpg', 'jpeg', 'png']:
@@ -28,8 +30,8 @@ class goYOLOv5:
 
     def load_model(self):
         self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=self.path_to_weights, verbose=False)
-        self.model.conf = 0.5
-        self.iou = 0.3
+        self.model.conf = self.conf
+        self.model.iou = self.iou
 
     def yolov5_results(self, img_frame):
 
@@ -80,11 +82,6 @@ class goYOLOv5:
             cv2.addWeighted(overlay, alpha, self.new_frame, 1 - alpha, 0, self.new_frame)
 
         return self, contours
-
-    def write_image_on_directory(self):
-        cv2.imwrite(self.output_directory + '/' + '{}_detection_yolo.jpg'.format(self.file_path.split('/')[1].split('.')[0]), self.new_frame)
-
-        return self.new_frame
         
     def capture_video(self):
         writer = None
@@ -125,6 +122,10 @@ class goYOLOv5:
         self.file.release()
 
     def run_yolo_on_stream(self):
+
+        QUEUE_SIZE = 5
+        WIDTH = 850
+
         self.load_model()
         writer=None
 
@@ -135,13 +136,13 @@ class goYOLOv5:
             path = self.file_path
             file_name = self.file_path.split('/')[1]
 
-        fvs = FileVideoStream(path, transform=None, queue_size=4).start()
+        fvs = FileVideoStream(path, transform=None, queue_size=QUEUE_SIZE).start()
         time.sleep(1.5)
         fps = FPS().start()
 
         while fvs.more():
             frame = fvs.read()
-            frame = imutils.resize(frame, width=700)
+            frame = imutils.resize(frame, width=WIDTH)
             
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = Image.fromarray(frame)
@@ -167,6 +168,10 @@ class goYOLOv5:
         cv2.destroyAllWindows()
         fvs.stop()
 
+    def write_image_on_directory(self):
+        cv2.imwrite(self.output_directory + '/' + '{}_detection_yolo.jpg'.format(self.file_path.split('/')[1].split('.')[0]), self.new_frame)
+        return self.new_frame
+
     def run_yolo_on_images(self):
         self.image_frame = self.get_file()
         self.load_model()
@@ -184,17 +189,16 @@ if __name__ == '__main__':
     output_folder = 'output/'
     file_name = 'webcam'
     file_path = file_folder + file_name
-    path_to_weights = 'weights/yolov5n.pt'
 
     print('Detecting...')
 
     # Images
-    # goYOLOv5(file_path, output_folder, path_to_weights).run_yolo_on_images()
+    # goYOLOv5(file_path, output_folder).run_yolo_on_images()
 
     # Videos
-    # goYOLOv5(file_path, output_folder, path_to_weights).run_yolo_on_videos()
+    # goYOLOv5(file_path, output_folder).run_yolo_on_videos()
 
     # Streaming
-    goYOLOv5(file_path, output_folder, path_to_weights).run_yolo_on_stream()
+    goYOLOv5(file_path, output_folder).run_yolo_on_stream()
 
     print('Finished!')
